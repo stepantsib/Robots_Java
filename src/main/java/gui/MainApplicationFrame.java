@@ -14,12 +14,19 @@ import java.awt.event.KeyEvent;
  */
 public class MainApplicationFrame extends JFrame
 {
+    /**
+     * Панель рабочего стола, на которой размещаются все внутренние окна.
+     */
     private final JDesktopPane desktopPane = new JDesktopPane();
-    
+
+    /**
+     * Создаёт главное окно, устанавливает его размер на весь экран
+     * с отступами от краёв, создаёт и добавляет окна лога и игры,
+     * а также инициализирует строку меню.
+     */
     public MainApplicationFrame() {
-        //Make the big window be indented 50 pixels from each edge
-        //of the screen.
-        int inset = 50;        
+        //Делает так, чтобы большое окно отступало на 50 пикселей от каждого края экрана.
+        int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
             screenSize.width  - inset*2,
@@ -38,7 +45,11 @@ public class MainApplicationFrame extends JFrame
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
-    
+
+    /**
+     * Создаёт и настраивает окно протокола.
+     * @return созданное окно протокола
+     */
     protected LogWindow createLogWindow()
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
@@ -49,13 +60,21 @@ public class MainApplicationFrame extends JFrame
         Logger.debug("Протокол работает");
         return logWindow;
     }
-    
+
+    /**
+     * Добавляет внутреннее окно на панель рабочего стола и делает его видимым.
+     * @param frame внутреннее окно для добавления
+     */
     protected void addWindow(JInternalFrame frame)
     {
         desktopPane.add(frame);
         frame.setVisible(true);
     }
 
+    /**
+     * Формирует строку меню с пунктами «Режим отображения» и «Тесты».
+     * @return готовая строка меню
+     */
     private JMenuBar generateMenuBar()
     {
         JMenuBar menuBar = new JMenuBar();
@@ -94,7 +113,12 @@ public class MainApplicationFrame extends JFrame
         menuBar.add(testMenu);
         return menuBar;
     }
-    
+
+    /**
+     * Пытается установить указанный Look & Feel.
+     * В случае успеха обновляет дерево компонентов.
+     * @param className полное имя класса Look & Feel
+     */
     private void setLookAndFeel(String className)
     {
         try
@@ -105,7 +129,7 @@ public class MainApplicationFrame extends JFrame
         catch (ClassNotFoundException | InstantiationException
             | IllegalAccessException | UnsupportedLookAndFeelException e)
         {
-            // just ignore
+            // пока игнорируется
         }
     }
 }
