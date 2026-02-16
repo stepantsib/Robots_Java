@@ -1,23 +1,19 @@
 package log;
 
-public class LogEntry
-{
-    private LogLevel logLevel;
-    private String strMessage;
-    
-    public LogEntry(LogLevel logLevel, String strMessage)
-    {
+public class LogEntry {
+    private final LogLevel logLevel;
+    private final String strMessage;
+
+    public LogEntry(LogLevel logLevel, String strMessage) {
         this.strMessage = strMessage;
         this.logLevel = logLevel;
     }
-    
-    public String getMessage()
-    {
+
+    public String getMessage() {
         return strMessage;
     }
-    
-    public LogLevel getLevel()
-    {
+
+    public LogLevel getLevel() {
         return logLevel;
     }
 }

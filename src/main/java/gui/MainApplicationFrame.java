@@ -4,16 +4,15 @@ import log.Logger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
- * Что требуется сделать:
- * 1. Метод создания меню перегружен функционалом и трудно читается. 
- * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
+ * Главное окно приложения, содержащее панель рабочего стола
+ * с внутренними окнами: лог, игровое поле, строку меню.
  *
  */
-public class MainApplicationFrame extends JFrame
-{
+public class MainApplicationFrame extends JFrame implements MenuActionListener {
     /**
      * Панель рабочего стола, на которой размещаются все внутренние окна.
      */
@@ -28,32 +27,38 @@ public class MainApplicationFrame extends JFrame
         //Делает так, чтобы большое окно отступало на 50 пикселей от каждого края экрана.
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds(inset, inset,
-            screenSize.width  - inset*2,
-            screenSize.height - inset*2);
+        setBounds(inset, inset, screenSize.width - inset * 2, screenSize.height - inset * 2);
 
         setContentPane(desktopPane);
-        
-        
+
+
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
 
         GameWindow gameWindow = new GameWindow();
-        gameWindow.setSize(400,  400);
+        gameWindow.setSize(400, 400);
         addWindow(gameWindow);
 
-        setJMenuBar(generateMenuBar());
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setJMenuBar(new MenuBar(this).create());
+
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                onExit();
+            }
+        });
     }
+
 
     /**
      * Создаёт и настраивает окно протокола.
+     *
      * @return созданное окно протокола
      */
-    protected LogWindow createLogWindow()
-    {
+    protected LogWindow createLogWindow() {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
-        logWindow.setLocation(10,10);
+        logWindow.setLocation(10, 10);
         logWindow.setSize(300, 800);
         setMinimumSize(logWindow.getSize());
         logWindow.pack();
@@ -63,73 +68,54 @@ public class MainApplicationFrame extends JFrame
 
     /**
      * Добавляет внутреннее окно на панель рабочего стола и делает его видимым.
+     *
      * @param frame внутреннее окно для добавления
      */
-    protected void addWindow(JInternalFrame frame)
-    {
+    protected void addWindow(JInternalFrame frame) {
         desktopPane.add(frame);
         frame.setVisible(true);
     }
 
-    /**
-     * Формирует строку меню с пунктами «Режим отображения» и «Тесты».
-     * @return готовая строка меню
-     */
-    private JMenuBar generateMenuBar()
-    {
-        JMenuBar menuBar = new JMenuBar();
-        
-        JMenu lookAndFeelMenu = new JMenu("Режим отображения");
-        lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
-        lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
-                "Управление режимом отображения приложения");
-        
-        JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
-        systemLookAndFeel.addActionListener((event) -> {
-            setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            this.invalidate();
-        });
-        lookAndFeelMenu.add(systemLookAndFeel);
-
-        JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
-        crossplatformLookAndFeel.addActionListener((event) -> {
-            setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-            this.invalidate();
-        });
-        lookAndFeelMenu.add(crossplatformLookAndFeel);
-
-        JMenu testMenu = new JMenu("Тесты");
-        testMenu.setMnemonic(KeyEvent.VK_T);
-        testMenu.getAccessibleContext().setAccessibleDescription(
-                "Тестовые команды");
-        
-        JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
-        addLogMessageItem.addActionListener((event) -> {
-            Logger.debug("Новая строка");
-        });
-        testMenu.add(addLogMessageItem);
-
-        menuBar.add(lookAndFeelMenu);
-        menuBar.add(testMenu);
-        return menuBar;
+    @Override
+    public void onSystemLookAndFeel() {
+        setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        invalidate();
     }
+
+    @Override
+    public void onCrossPlatformLookAndFeel() {
+        setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        invalidate();
+    }
+
+    @Override
+    public void onAddLogMessage() {
+        Logger.debug("Новая строка");
+    }
+
+    @Override
+    public void onExit() {
+        int result = JOptionPane.showOptionDialog(this, "Вы действительно хотите выйти?", "Подтверждение выхода", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new Object[]{"Да", "Нет"}, "Нет");
+        if (result == JOptionPane.YES_OPTION) {
+            dispose();
+        }
+    }
+
 
     /**
      * Пытается установить указанный Look & Feel.
      * В случае успеха обновляет дерево компонентов.
+     *
      * @param className полное имя класса Look & Feel
      */
-    private void setLookAndFeel(String className)
-    {
-        try
-        {
+    private void setLookAndFeel(String className) {
+        try {
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(this);
-        }
-        catch (ClassNotFoundException | InstantiationException
-            | IllegalAccessException | UnsupportedLookAndFeelException e)
-        {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException |
+                 UnsupportedLookAndFeelException e) {
             // пока игнорируется
         }
     }
+
 }
